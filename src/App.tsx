@@ -8,7 +8,7 @@
  * @format
  */
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   Alert,
   Dimensions,
@@ -22,10 +22,10 @@ import {
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {RNCamera} from 'react-native-camera';
-import {Button} from 'react-native-paper';
-// import CameraChange from '../assets/icons/cameraChange.svg';
+import CameraChange from '~/assets/icons/cameraChange.svg';
 import Carousel from 'react-native-snap-carousel';
 import {Filter, FilterProps} from './interfaces/filter';
+import Icon from 'react-native-vector-icons/dist/FontAwesome';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -68,10 +68,6 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(currentFilter);
-  }, [currentFilter]);
-
   return (
     <SafeAreaView style={[backgroundStyle, styles.fullScreen]}>
       <StatusBar barStyle={isDarkMode ? 'dark-content' : 'light-content'} />
@@ -93,18 +89,54 @@ const App = () => {
           }}
         />
       </View>
-      <View style={[StyleSheet.absoluteFill]}>
-        <View style={[styles.fullScreen, {backgroundColor: 'transparent'}]}>
-          <Button mode={'text'} onPress={() => setIsFront(f => !f)}>
-            {/*<CameraChange fill={'#faf'} />*/}
-            as
-          </Button>
-        </View>
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {flexDirection: 'column-reverse', backgroundColor: 'transparent'},
+        ]}>
+        <View style={[styles.bottomBar]}>
+          <TouchableOpacity
+            style={{
+              padding: 8,
+              margin: 8,
+              borderWidth: 2,
+              borderColor: 'white',
+              borderRadius: 8,
+              height: 28,
+              width: 28,
+            }}
+            onPress={() => setIsFront(f => !f)}
+          />
 
-        <View style={{marginBottom: 20}}>
+          <View style={[styles.filterDetails]}>
+            <TouchableOpacity style={{padding: 8}} onPress={() => {}}>
+              <Icon name="bookmark" size={20} color="#aaa" />
+            </TouchableOpacity>
+
+            <View style={{alignItems: 'center', flex: 1}}>
+              <Text style={{color: '#aaa'}}>
+                {filters[currentFilter].title}
+              </Text>
+              <Text style={{color: '#aaa'}}>
+                {filters[currentFilter].title}
+              </Text>
+            </View>
+
+            <TouchableOpacity style={{padding: 8}} onPress={() => {}}>
+              <Icon name="close" size={20} color="#aaa" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={{padding: 8}}
+            onPress={() => setIsFront(f => !f)}>
+            <CameraChange width={28} height={28} fill={'#fff'} />
+          </TouchableOpacity>
+        </View>
+        <View style={{paddingBottom: 16, backgroundColor: 'transparent'}}>
           <Carousel
             ref={courRef}
-            itemWidth={75}
+            itemWidth={70}
             sliderHeight={84}
             layout={'default'}
             inactiveSlideScale={0.8}
@@ -159,8 +191,8 @@ const styles = StyleSheet.create({
   },
   circle: {
     borderRadius: 40,
-    height: 75,
-    width: 75,
+    height: 70,
+    width: 70,
   },
   filterCard: {
     justifyContent: 'center',
@@ -171,6 +203,27 @@ const styles = StyleSheet.create({
     borderColor: 'white',
   },
   offRing: {borderWidth: 6, borderColor: 'transparent'},
+  bottomBar: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  filterDetails: {
+    alignSelf: 'center',
+    flex: 1,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(100,100,100,0.5)',
+    marginLeft: 16,
+    marginRight: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
 });
 
 export default App;
