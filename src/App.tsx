@@ -10,7 +10,6 @@
 
 import React, {useRef, useState} from 'react';
 import {
-  Alert,
   Dimensions,
   SafeAreaView,
   StatusBar,
@@ -26,6 +25,8 @@ import CameraChange from '~/assets/icons/cameraChange.svg';
 import Carousel from 'react-native-snap-carousel';
 import {Filter, FilterProps} from './interfaces/filter';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import CameraRoll from '@react-native-community/cameraroll';
+import SimpleToast from 'react-native-simple-toast';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -56,15 +57,17 @@ const App = () => {
 
       setIsTakingPicture(true);
 
-      try {
-        const data = await cameraRef.current.takePictureAsync(options);
-        Alert.alert('Success', JSON.stringify(data));
-      } catch (err) {
-        Alert.alert('Error', 'Failed to take picture: ' + (err.message || err));
-        return;
-      } finally {
-        setIsTakingPicture(false);
-      }
+      cameraRef.current.takePictureAsync(options).then(data => {
+        CameraRoll.save(data.uri, {type: 'photo'})
+          .then(() => {
+            SimpleToast.show('Saved to gallery!', 500);
+            setIsTakingPicture(false);
+          })
+          .catch(err => {
+            console.error('error', err);
+            setIsTakingPicture(false);
+          });
+      });
     }
   };
 
@@ -84,6 +87,12 @@ const App = () => {
           androidCameraPermissionOptions={{
             title: 'Permission to use camera',
             message: 'We need your permission to use your camera',
+            buttonPositive: 'Ok',
+            buttonNegative: 'Cancel',
+          }}
+          androidRecordAudioPermissionOptions={{
+            title: 'Permission to use audio recording',
+            message: 'We need your permission to use your audio',
             buttonPositive: 'Ok',
             buttonNegative: 'Cancel',
           }}
