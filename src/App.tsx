@@ -8,9 +8,10 @@
  * @format
  */
 
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
+  Image,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -27,6 +28,7 @@ import {Filter, FilterProps} from './interfaces/filter';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import CameraRoll from '@react-native-community/cameraroll';
 import SimpleToast from 'react-native-simple-toast';
+import {ProgressBar} from 'react-native-paper';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -40,6 +42,7 @@ const App = () => {
     {title: 'f2', background: 'green'},
     {title: 'f3', background: 'red'},
   ]);
+  const [latestImage, setLatestImage] = useState<string>('');
   const [isFront, setIsFront] = useState<boolean>(true);
   const [isTakingPicture, setIsTakingPicture] = useState<boolean>(false);
   const [isAudio] = useState<boolean>(false);
@@ -61,15 +64,28 @@ const App = () => {
         CameraRoll.save(data.uri, {type: 'photo'})
           .then(() => {
             SimpleToast.show('Saved to gallery!', 500);
-            setIsTakingPicture(false);
           })
           .catch(err => {
             console.error('error', err);
+          })
+          .finally(() => {
             setIsTakingPicture(false);
           });
       });
     }
   };
+
+  useEffect(() => {
+    if (!isTakingPicture) {
+      CameraRoll.getPhotos({
+        first: 1,
+        groupTypes: 'All',
+        assetType: 'All',
+      }).then(r => {
+        setLatestImage(r.edges[0].node.image.uri);
+      });
+    }
+  }, [isTakingPicture]);
 
   return (
     <SafeAreaView style={[backgroundStyle, styles.fullScreen]}>
@@ -106,16 +122,24 @@ const App = () => {
         <View style={[styles.bottomBar]}>
           <TouchableOpacity
             style={{
-              padding: 8,
+              overflow: 'hidden',
               margin: 8,
               borderWidth: 2,
               borderColor: 'white',
               borderRadius: 8,
-              height: 28,
-              width: 28,
+              height: 32,
+              width: 32,
             }}
-            onPress={() => setIsFront(f => !f)}
-          />
+            onPress={() => setIsFront(f => !f)}>
+            {latestImage ? (
+              <Image
+                source={{uri: latestImage}}
+                style={{width: '100%', height: '100%'}}
+              />
+            ) : (
+              <ProgressBar style={{width: '100%', height: '100%'}} />
+            )}
+          </TouchableOpacity>
 
           <View style={[styles.filterDetails]}>
             <TouchableOpacity style={{padding: 8}} onPress={() => {}}>
