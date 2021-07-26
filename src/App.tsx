@@ -12,6 +12,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
   Image,
+  Linking,
+  Platform,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -80,7 +82,7 @@ const App = () => {
       CameraRoll.getPhotos({
         first: 1,
         groupTypes: 'All',
-        assetType: 'All',
+        assetType: 'Photos',
       }).then(r => {
         setLatestImage(r.edges[0].node.image.uri);
       });
@@ -130,7 +132,14 @@ const App = () => {
               height: 32,
               width: 32,
             }}
-            onPress={() => setIsFront(f => !f)}>
+            onPress={() => {
+              Linking.openURL(
+                Platform.select({
+                  android: 'content://media/internal/images/media',
+                  ios: 'photos-redirect://',
+                }) || '',
+              );
+            }}>
             {latestImage ? (
               <Image
                 source={{uri: latestImage}}
