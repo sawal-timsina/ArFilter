@@ -10,27 +10,19 @@
 
 import React, {useEffect, useRef, useState} from 'react';
 import {
-  Dimensions,
-  Image,
-  Linking,
-  Platform,
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {RNCamera} from 'react-native-camera';
-import CameraChange from '~/assets/icons/cameraChange.svg';
-import Carousel from 'react-native-snap-carousel';
-import {Filter, FilterProps} from './interfaces/filter';
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import {Filter} from './interfaces/filter';
 import CameraRoll from '@react-native-community/cameraroll';
 import SimpleToast from 'react-native-simple-toast';
-import {ProgressBar} from 'react-native-paper';
+import {Filters} from './components/molecules';
+import {CameraControls} from './components';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -48,9 +40,8 @@ const App = () => {
   const [isFront, setIsFront] = useState<boolean>(true);
   const [isTakingPicture, setIsTakingPicture] = useState<boolean>(false);
   const [isAudio] = useState<boolean>(false);
-  const [currentFilter, setCurrentFilter] = useState<number>(0);
+  const [currentFilter, setCurrentFilter] = useState<Filter>(filters[0]);
   const cameraRef = useRef<RNCamera>(null);
-  const courRef = useRef<Carousel<Filter>>(null);
 
   const takePicture = async () => {
     if (cameraRef.current && !isTakingPicture) {
@@ -96,7 +87,8 @@ const App = () => {
         <RNCamera
           ref={cameraRef}
           onFacesDetected={response => {
-            console.log(response.faces[0]?.bounds.origin);
+            const bounds = response.faces[0]?.bounds.origin;
+            bounds && console.log(bounds);
           }}
           captureAudio={isAudio}
           style={[styles.fullScreen]}
@@ -124,106 +116,18 @@ const App = () => {
           StyleSheet.absoluteFill,
           {flexDirection: 'column-reverse', backgroundColor: 'transparent'},
         ]}>
-        <View style={[styles.bottomBar]}>
-          <TouchableOpacity
-            style={{
-              overflow: 'hidden',
-              margin: 6,
-              borderWidth: 2,
-              borderColor: 'white',
-              borderRadius: 8,
-              height: 32,
-              width: 32,
-            }}
-            onPress={() => {
-              Linking.openURL(
-                Platform.select({
-                  android: 'content://media/internal/images/media',
-                  ios: 'photos-redirect://',
-                }) || '',
-              );
-            }}>
-            {latestImage ? (
-              <Image
-                source={{uri: latestImage}}
-                style={{width: '100%', height: '100%'}}
-              />
-            ) : (
-              <ProgressBar style={{width: '100%', height: '100%'}} />
-            )}
-          </TouchableOpacity>
-
-          <View style={[styles.filterDetails]}>
-            <TouchableOpacity style={{padding: 8}} onPress={() => {}}>
-              <Icon name="bookmark" size={20} color="#aaa" />
-            </TouchableOpacity>
-
-            <View style={{alignItems: 'center', flex: 1}}>
-              <Text style={{color: '#aaa'}}>
-                {filters[currentFilter].title}
-              </Text>
-              <Text style={{color: '#aaa'}}>
-                {filters[currentFilter].title}
-              </Text>
-            </View>
-
-            <TouchableOpacity style={{padding: 8}} onPress={() => {}}>
-              <Icon name="close" size={20} color="#aaa" />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={{padding: 8}}
-            onPress={() => setIsFront(f => !f)}>
-            <CameraChange width={28} height={28} fill={'#fff'} />
-          </TouchableOpacity>
-        </View>
-        <View style={{paddingBottom: 16, backgroundColor: 'transparent'}}>
-          <Carousel
-            ref={courRef}
-            itemWidth={70}
-            sliderHeight={84}
-            layout={'default'}
-            inactiveSlideScale={0.8}
-            inactiveSlideOpacity={1}
-            slideStyle={[styles.circle]}
-            activeAnimationType={'decay'}
-            onSnapToItem={setCurrentFilter}
-            sliderWidth={Dimensions.get('screen').width}
-            data={filters}
-            renderItem={({item, index}: FilterProps) => {
-              return (
-                <TouchableOpacity
-                  key={index}
-                  onPress={takePicture}
-                  disabled={index !== currentFilter}>
-                  <View
-                    style={[
-                      styles.filterCard,
-                      styles.circle,
-                      styles.offRing,
-                      {backgroundColor: item.background},
-                    ]}>
-                    {!index && !currentFilter ? (
-                      <Text />
-                    ) : (
-                      <Text>{item.title}</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            }}
-          />
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              styles.filterCard,
-              {width: '100%', height: '100%'},
-            ]}
-            pointerEvents={'none'}>
-            <View style={[styles.filterCard, styles.circle, styles.ring]} />
-          </View>
-        </View>
+        <CameraControls
+          latestImage={latestImage}
+          switchCamera={() => setIsFront(f => !f)}
+          currentFilter={currentFilter}
+        />
+        <Filters
+          filters={filters}
+          setCurrentFilter={index => {
+            setCurrentFilter(filters[index]);
+          }}
+          takePicture={takePicture}
+        />
       </View>
     </SafeAreaView>
   );
@@ -234,40 +138,9 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
   },
-  circle: {
-    borderRadius: 40,
-    height: 70,
-    width: 70,
-  },
-  filterCard: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   ring: {
     borderWidth: 4,
     borderColor: 'white',
-  },
-  offRing: {borderWidth: 6, borderColor: 'transparent'},
-  bottomBar: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    paddingLeft: 16,
-    paddingRight: 16,
-  },
-  filterDetails: {
-    alignSelf: 'center',
-    flex: 1,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(100,100,100,0.5)',
-    marginLeft: 16,
-    marginRight: 16,
-    paddingLeft: 16,
-    paddingRight: 16,
-    alignItems: 'center',
-    flexDirection: 'row',
   },
 });
 
