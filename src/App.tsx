@@ -95,6 +95,9 @@ const App = () => {
       <View style={[styles.fullScreen]}>
         <RNCamera
           ref={cameraRef}
+          onFacesDetected={response => {
+            console.log(response.faces[0]?.bounds.origin);
+          }}
           captureAudio={isAudio}
           style={[styles.fullScreen]}
           type={
@@ -125,7 +128,7 @@ const App = () => {
           <TouchableOpacity
             style={{
               overflow: 'hidden',
-              margin: 8,
+              margin: 6,
               borderWidth: 2,
               borderColor: 'white',
               borderRadius: 8,
