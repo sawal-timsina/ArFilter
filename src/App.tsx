@@ -13,15 +13,16 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
+  Text,
   useColorScheme,
   View,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {RNCamera} from 'react-native-camera';
+import {Face, RNCamera} from 'react-native-camera';
 import {Filter} from './interfaces/filter';
 import CameraRoll from '@react-native-community/cameraroll';
 import SimpleToast from 'react-native-simple-toast';
-import {Filters} from './components/molecules';
+import {Filters} from './components';
 import {CameraControls} from './components';
 
 const App = () => {
@@ -42,6 +43,8 @@ const App = () => {
   const [isAudio] = useState<boolean>(false);
   const [currentFilter, setCurrentFilter] = useState<Filter>(filters[0]);
   const cameraRef = useRef<RNCamera>(null);
+  const [face, setFace] = useState<Face>();
+  const bounds = face?.bounds;
 
   const takePicture = async () => {
     if (cameraRef.current && !isTakingPicture) {
@@ -87,8 +90,8 @@ const App = () => {
         <RNCamera
           ref={cameraRef}
           onFacesDetected={response => {
-            const bounds = response.faces[0]?.bounds.origin;
-            bounds && console.log(bounds);
+            const _face = response.faces[0];
+            _face !== face && setFace(_face);
           }}
           captureAudio={isAudio}
           style={[styles.fullScreen]}
@@ -111,6 +114,17 @@ const App = () => {
           }}
         />
       </View>
+
+      {bounds && (
+        <Text
+          style={{
+            position: 'absolute',
+            top: (bounds?.origin.y || 0) + (bounds?.size.height || 0) / 8,
+            left: (bounds?.origin.x || 0) + (bounds?.size.width || 0) / 3,
+          }}>
+          {currentFilter.title}
+        </Text>
+      )}
       <View
         style={[
           StyleSheet.absoluteFill,
