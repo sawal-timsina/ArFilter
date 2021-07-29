@@ -13,7 +13,6 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native';
@@ -22,8 +21,7 @@ import {Face, RNCamera} from 'react-native-camera';
 import {Filter} from './interfaces/filter';
 import CameraRoll from '@react-native-community/cameraroll';
 import SimpleToast from 'react-native-simple-toast';
-import {Filters} from './components';
-import {CameraControls} from './components';
+import {CameraControls, Filters} from './components';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -116,14 +114,19 @@ const App = () => {
       </View>
 
       {bounds && (
-        <Text
+        <View
           style={{
             position: 'absolute',
-            top: (bounds?.origin.y || 0) + (bounds?.size.height || 0) / 8,
-            left: (bounds?.origin.x || 0) + (bounds?.size.width || 0) / 3,
-          }}>
-          {currentFilter.title}
-        </Text>
+            top: bounds?.origin.y || 0,
+            left: bounds?.origin.x - 20 || 0,
+            height: bounds.size.height,
+            width: bounds.size.width,
+            borderWidth: 2,
+            borderColor: currentFilter.background,
+            opacity: 0.5,
+            borderRadius: 16,
+          }}
+        />
       )}
       <View
         style={[
@@ -138,7 +141,9 @@ const App = () => {
         <Filters
           filters={filters}
           setCurrentFilter={index => {
-            setCurrentFilter(filters[index]);
+            const _currentFilter = filters[index];
+            currentFilter !== _currentFilter &&
+              setCurrentFilter(_currentFilter);
           }}
           takePicture={takePicture}
         />
